@@ -1,0 +1,27 @@
+# ForgeMind read-only profile
+# Safe for explain / explore tasks — no write, test, or git mutation.
+
+profile = "readonly"
+log_level = "INFO"
+
+[budgets]
+max_steps = 40
+max_tool_calls = 120
+max_repair_iterations = 0
+timeout_seconds = 900.0
+
+[policy]
+permissions = ["repo.read", "git.read"]
+path_denylist = [
+  ".env",
+  ".env.*",
+  "**/.env",
+  "**/.env.*",
+  "**/secrets/**",
+  "**/*.pem",
+  "**/*.key",
+  "**/*credentials*",
+  ".git/objects/**",
+  "**/.git/objects/**",
+]
+risk_classes_requiring_approval = ["write", "exec", "mutate_git", "mutate_remote"]

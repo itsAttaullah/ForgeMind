@@ -1,0 +1,36 @@
+# ForgeMind standard profile
+# Default engineering profile: read/write + tests; git/remote mutations need approval.
+
+profile = "standard"
+log_level = "INFO"
+
+[budgets]
+max_steps = 50
+max_tool_calls = 200
+max_repair_iterations = 5
+timeout_seconds = 1800.0
+
+[policy]
+permissions = ["repo.read", "repo.write", "test.run", "git.read"]
+path_denylist = [
+  ".env",
+  ".env.*",
+  "**/.env",
+  "**/.env.*",
+  "**/secrets/**",
+  "**/*.pem",
+  "**/*.key",
+  "**/*credentials*",
+  ".git/objects/**",
+  "**/.git/objects/**",
+]
+risk_classes_requiring_approval = ["mutate_git", "mutate_remote"]
+paths_requiring_approval = [
+  "**/pyproject.toml",
+  "**/package-lock.json",
+  "**/pnpm-lock.yaml",
+  "**/yarn.lock",
+  "**/uv.lock",
+  "**/Cargo.lock",
+  "**/poetry.lock",
+]

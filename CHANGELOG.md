@@ -10,6 +10,12 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 2 config system: layered loader (defaults → file → env → overrides)
+- Built-in profiles `readonly`, `standard`, `strict` with example TOML under `configs/`
+- Policy engine with permission checks, workspace path jail, allow/deny globs, approval triggers
+- Budget assertion helpers (steps, tool calls, repairs, optional USD cost)
+- Profile documentation (`docs/config/profiles.md`)
+
 - Phase 1 core domain types, enums, errors, and protocols (`forgemind.core`)
 - `parse_agent_action` validation with `InvalidActionError` for malformed LLM payloads
 - Contracts documentation (`docs/contracts/README.md`)
