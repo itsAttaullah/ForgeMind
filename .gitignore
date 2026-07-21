@@ -1,0 +1,110 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env/
+.python-version
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.cache/
+
+# Type checkers / linters
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.pyre/
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs and runtime
+logs/
+*.log
+tmp/
+temp/
+.tmpdir/
+
+# Local / machine-specific
+*.local
+local_settings.py
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model / data artifacts (keep structure, ignore payloads)
+data/raw/
+data/processed/
+*.parquet
+*.bin
+*.gguf
+*.onnx
+*.pt
+*.pth
+*.safetensors
+
+# ForgeMind local runtime state
+.forgemind/
+runs/
+artifacts/
+out/
+
+# Pre-commit
+.pre-commit-config.yaml.bak

@@ -1,0 +1,2 @@
+# Integration tests land with later phases (providers, agent loop, API).
+# Keep this package importable so pytest collection stays stable.
