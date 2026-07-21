@@ -15,6 +15,7 @@ from forgemind.config.models import (
     BudgetSettings,
     ForgeMindConfig,
     PolicySettings,
+    ProviderKind,
     ProviderSettings,
 )
 
@@ -23,6 +24,7 @@ __all__ = [
     "BudgetSettings",
     "ForgeMindConfig",
     "PolicySettings",
+    "ProviderKind",
     "ProviderSettings",
     "assert_cost_budget",
     "assert_repair_budget",

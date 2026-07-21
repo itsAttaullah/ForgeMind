@@ -27,10 +27,13 @@ def env_overrides(environ: Mapping[str, str] | None = None) -> dict[str, object]
             ),
             "provider": drop_none(
                 {
+                    "kind": env.get("FORGEMIND_PROVIDER"),
                     "model": env.get("FORGEMIND_MODEL"),
                     "temperature": _float(env, "FORGEMIND_TEMPERATURE"),
                     "max_tokens": _int(env, "FORGEMIND_MAX_TOKENS"),
                     "base_url": env.get("FORGEMIND_BASE_URL"),
+                    "api_key_env": env.get("FORGEMIND_API_KEY_ENV"),
+                    "timeout_seconds": _float(env, "FORGEMIND_PROVIDER_TIMEOUT_SECONDS"),
                 }
             ),
             "policy": drop_none(
