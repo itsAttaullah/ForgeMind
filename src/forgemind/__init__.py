@@ -1,10 +1,32 @@
-"""ForgeMind — open-source, inspectable AI agent runtime.
+"""ForgeMind — Autonomous Software Engineering Agent runtime.
 
-This package is scaffolding only until roadmap phases land.
-The agent runtime is intentionally not implemented yet.
+Phase 1 exposes core domain types and protocols. The agent loop is not
+implemented yet (see ROADMAP Phase 6+).
 """
 
 from __future__ import annotations
 
-__version__ = "0.0.0"
-__all__ = ["__version__"]
+from forgemind.core import (
+    AgentAction,
+    EngineeringReport,
+    ExecutionPlan,
+    InvalidActionError,
+    RunState,
+    RunStatus,
+    TaskSpec,
+    parse_agent_action,
+)
+
+__version__ = "0.1.0.dev0"
+
+__all__ = [
+    "AgentAction",
+    "EngineeringReport",
+    "ExecutionPlan",
+    "InvalidActionError",
+    "RunState",
+    "RunStatus",
+    "TaskSpec",
+    "__version__",
+    "parse_agent_action",
+]
