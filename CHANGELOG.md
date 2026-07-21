@@ -10,15 +10,22 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 1 core domain types, enums, errors, and protocols (`forgemind.core`)
+- `parse_agent_action` validation with `InvalidActionError` for malformed LLM payloads
+- Contracts documentation (`docs/contracts/README.md`)
+- Pydantic v2 runtime dependency
+
+### Changed
+
+- Package version bumped to `0.1.0.dev0`
+
+## [0.0.0] — 2026-07-20
+
+### Added
+
 - Architecture proposal for Autonomous Software Engineering Agent (`docs/architecture/PROPOSAL.md`)
 - Initial ADRs 0001–0006 (`docs/adr/`)
 - Roadmap realigned to ASE phases (0–14)
 - Repository bootstrap (Phase 0): package layout, docs, tooling, and smoke tests
 - Engineering documentation under `docs/engineering/`
 - Agent guidance under `.ai/`
-
-## [0.0.0] — 2026-07-20
-
-### Added
-
-- Initial project scaffolding (pre-release; no agent runtime yet)
