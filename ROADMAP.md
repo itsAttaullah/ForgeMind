@@ -16,7 +16,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 0 — Repository foundation
 
-**Status:** Active (bootstrap complete; architecture proposal in review)
+**Status:** Done
 
 **Goals**
 
@@ -36,7 +36,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 1 — Core types and contracts
 
-**Status:** Planned  
+**Status:** Active  
 **Branch:** `phase-1/core-types`
 
 **Goals**
@@ -47,10 +47,9 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] Typed models + serialization tests
-- [ ] Contracts documented under `docs/`
-- [ ] Invalid action examples rejected by validators
-
+- [x] Typed models + serialization tests
+- [x] Contracts documented under `docs/`
+- [x] Invalid action examples rejected by validators
 ---
 
 ## Phase 2 — Config, budgets, and policy

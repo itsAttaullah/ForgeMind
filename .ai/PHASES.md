@@ -10,10 +10,10 @@ Canonical docs:
 
 ## Current state
 
-- **Active:** Phase 0 (foundation + architecture)
+- **Active:** Phase 1 (core types and contracts)
 - **Agent runtime:** not implemented (starts Phase 6, read-only)
 - **Mutating edits / test loop:** Phase 8+
-- **Version:** `0.0.0`
+- **Version:** `0.1.0.dev0`
 
 ## Hard stops
 
