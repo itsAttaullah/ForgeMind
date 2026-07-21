@@ -55,7 +55,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 2 — Config, budgets, and policy
 
-**Status:** Active  
+**Status:** Done  
 **Branch:** `feat/config-policy`
 
 **Goals**
@@ -74,8 +74,8 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 3 — Model provider adapters
 
-**Status:** Planned  
-**Branch:** `phase-3/providers`
+**Status:** Active  
+**Branch:** `feat/model-providers`
 
 **Goals**
 
@@ -85,16 +85,16 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] Provider protocol + reference + stub
-- [ ] Normalized responses (incl. error mapping)
-- [ ] Docs for adding a provider
+- [x] Provider protocol + reference + stub
+- [x] Normalized responses (incl. error mapping)
+- [x] Docs for adding a provider
 
 ---
 
 ## Phase 4 — Tool system + read-only repo tools
 
 **Status:** Planned  
-**Branch:** `phase-4/tools-readonly`
+**Branch:** `feat/tools-readonly`
 
 **Goals**
 
