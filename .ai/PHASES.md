@@ -10,7 +10,7 @@ Canonical docs:
 
 ## Current state
 
-- **Active:** Phase 1 (core types and contracts)
+- **Active:** Phase 2 (config, budgets, policy)
 - **Agent runtime:** not implemented (starts Phase 6, read-only)
 - **Mutating edits / test loop:** Phase 8+
 - **Version:** `0.1.0.dev0`
@@ -27,6 +27,8 @@ Canonical docs:
 | Add plugin loader / release hardening | Phase 14 |
 | Depend on LangChain/etc. in core | Ever (ADR 0006) |
 | Give the model raw FS/shell access | Ever (ADR 0001/0002) |
+
+Phase 2 may implement config + policy only (no tool executor, no orchestrator).
 
 ## Before writing code
 

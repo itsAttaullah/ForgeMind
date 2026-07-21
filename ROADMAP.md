@@ -36,8 +36,8 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 1 — Core types and contracts
 
-**Status:** Active  
-**Branch:** `phase-1/core-types`
+**Status:** Done  
+**Branch:** `feat/core-types`
 
 **Goals**
 
@@ -50,12 +50,13 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 - [x] Typed models + serialization tests
 - [x] Contracts documented under `docs/`
 - [x] Invalid action examples rejected by validators
+
 ---
 
 ## Phase 2 — Config, budgets, and policy
 
-**Status:** Planned  
-**Branch:** `phase-2/config-policy`
+**Status:** Active  
+**Branch:** `feat/config-policy`
 
 **Goals**
 
@@ -65,9 +66,9 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] Config schema + examples in `configs/`
-- [ ] Policy unit tests (allow/deny matrices)
-- [ ] Docs for profiles (read-only vs standard vs strict)
+- [x] Config schema + examples in `configs/`
+- [x] Policy unit tests (allow/deny matrices)
+- [x] Docs for profiles (read-only vs standard vs strict)
 
 ---
 

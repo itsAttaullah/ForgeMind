@@ -14,7 +14,8 @@ This repository is under phased development. The agent itself is **not** impleme
 |------|--------|
 | Repository bootstrap | Phase 0 done |
 | Architecture proposal | Accepted (docs) |
-| Core contracts | Phase 1 (active branch) |
+| Core contracts | Phase 1 done |
+| Config / policy | Phase 2 (active branch) |
 | Agent runtime | Not started (Phase 6+) |
 | Public API | Not frozen |
 | Stable release | Not yet |
@@ -84,6 +85,7 @@ mypy src
 
 - [Architecture proposal](docs/architecture/PROPOSAL.md) — system design
 - [Core contracts](docs/contracts/README.md) — Phase 1 types and protocols
+- [Runtime profiles](docs/config/profiles.md) — Phase 2 config and policy
 - [ADRs](docs/adr/README.md) — architecture decisions
 - [Roadmap](ROADMAP.md) — phase-by-phase plan
 - [Contributing](CONTRIBUTING.md) — contribution workflow
