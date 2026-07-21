@@ -10,7 +10,7 @@ Canonical docs:
 
 ## Current state
 
-- **Active:** Phase 2 (config, budgets, policy)
+- **Active:** Phase 3 (model provider adapters)
 - **Agent runtime:** not implemented (starts Phase 6, read-only)
 - **Mutating edits / test loop:** Phase 8+
 - **Version:** `0.1.0.dev0`
@@ -19,6 +19,7 @@ Canonical docs:
 
 | Do not… | Until |
 |---------|-------|
+| Implement tool registry / executor | Phase 4 |
 | Implement orchestrator / agent loop | Phase 6 |
 | Implement write/edit tools or test-repair loop | Phase 8 |
 | Wire product CLI entrypoint | Phase 11 |
@@ -28,7 +29,7 @@ Canonical docs:
 | Depend on LangChain/etc. in core | Ever (ADR 0006) |
 | Give the model raw FS/shell access | Ever (ADR 0001/0002) |
 
-Phase 2 may implement config + policy only (no tool executor, no orchestrator).
+Phase 3 may implement provider adapters only (no tool executor, no orchestrator).
 
 ## Before writing code
 

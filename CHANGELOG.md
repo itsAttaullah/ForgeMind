@@ -10,6 +10,11 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 3 model providers: `StubProvider` and `OpenAICompatibleProvider`
+- Provider factory (`create_provider`) wired to config `provider.kind`
+- Normalized `ProviderResponse` mapping and `ProviderError` HTTP details
+- Provider documentation (`docs/providers/README.md`)
+
 - Phase 2 config system: layered loader (defaults → file → env → overrides)
 - Built-in profiles `readonly`, `standard`, `strict` with example TOML under `configs/`
 - Policy engine with permission checks, workspace path jail, allow/deny globs, approval triggers

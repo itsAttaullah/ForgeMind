@@ -65,15 +65,25 @@ class PolicySettings(BaseModel):
         return value
 
 
+class ProviderKind(StrEnum):
+    """Built-in model provider adapters."""
+
+    STUB = "stub"
+    OPENAI_COMPATIBLE = "openai_compatible"
+
+
 class ProviderSettings(BaseModel):
-    """Provider-related settings (adapters land in Phase 3)."""
+    """Provider-related settings."""
 
     model_config = ConfigDict(extra="forbid")
 
+    kind: ProviderKind = ProviderKind.STUB
     model: str | None = None
     temperature: float | None = Field(default=None, ge=0, le=2)
     max_tokens: int | None = Field(default=None, ge=1)
     base_url: str | None = None
+    api_key_env: str = "OPENAI_API_KEY"
+    timeout_seconds: float = Field(default=60.0, gt=0)
 
 
 class ForgeMindConfig(BaseModel):
