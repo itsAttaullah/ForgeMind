@@ -93,7 +93,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 4 — Tool system + read-only repo tools
 
-**Status:** Active  
+**Status:** Done  
 **Branch:** `feat/tools-readonly`
 
 **Goals**
@@ -112,7 +112,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 5 — Memory system
 
-**Status:** Planned  
+**Status:** Active  
 **Branch:** `feat/memory`
 
 **Goals**
@@ -123,16 +123,16 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] In-memory working store + persistence hook
-- [ ] Long-term port + simple local backend
-- [ ] Tests for retention / summary-only reflection storage
+- [x] In-memory working store + persistence hook
+- [x] Long-term port + simple local backend
+- [x] Tests for retention / summary-only reflection storage
 
 ---
 
 ## Phase 6 — Orchestrator + state machine (read-only autonomy)
 
 **Status:** Planned  
-**Branch:** `phase-6/orchestrator`
+**Branch:** `feat/orchestrator`
 
 **Goals**
 

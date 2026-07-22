@@ -10,7 +10,7 @@ Canonical docs:
 
 ## Current state
 
-- **Active:** Phase 4 (tool system + read-only repo tools)
+- **Active:** Phase 5 (memory system)
 - **Agent runtime:** not implemented (starts Phase 6, read-only)
 - **Mutating edits / test loop:** Phase 8+
 - **Version:** `0.1.0.dev0`
@@ -19,17 +19,17 @@ Canonical docs:
 
 | Do not… | Until |
 |---------|-------|
-| Implement write/edit tools or test-repair loop | Phase 8 |
-| Implement memory backends | Phase 5 |
 | Implement orchestrator / agent loop | Phase 6 |
+| Implement write/edit tools or test-repair loop | Phase 8 |
 | Wire product CLI entrypoint | Phase 11 |
 | Add git mutation / approval UX | Phase 12 |
 | Add GitHub mutation tools | Phase 13 |
 | Add plugin loader / release hardening | Phase 14 |
 | Depend on LangChain/etc. in core | Ever (ADR 0006) |
 | Give the model raw FS/shell access | Ever (ADR 0001/0002) |
+| Persist private chain-of-thought | Ever |
 
-Phase 4 may implement read-only tools only (no writes, no orchestrator).
+Phase 5 may implement memory stores only (no orchestrator).
 
 ## Before writing code
 
