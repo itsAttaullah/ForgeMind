@@ -7,6 +7,7 @@
 | [**Core contracts (Phase 1)**](contracts/README.md) | Domain types, actions, protocols |
 | [**Runtime profiles (Phase 2)**](config/profiles.md) | Config, budgets, policy profiles |
 | [**Model providers (Phase 3)**](providers/README.md) | Provider adapters and setup |
+| [**Tools (Phase 4)**](tools/README.md) | Registry, executor, read-only repo tools |
 | [ADRs](adr/README.md) | Architecture Decision Records |
 | [Getting started](getting-started.md) | Install and verify the bootstrap |
 | [Engineering overview](engineering/overview.md) | How this repository is developed |
