@@ -10,6 +10,11 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 4 tool runtime: registry, argument validation, policy-aware executor
+- Read-only repo tools: `repo.list_structure`, `repo.search`, `repo.read_file`
+- Sample fixture repository under `tests/fixtures/sample_repo/`
+- Tools documentation (`docs/tools/README.md`)
+
 - Phase 3 model providers: `StubProvider` and `OpenAICompatibleProvider`
 - Provider factory (`create_provider`) wired to config `provider.kind`
 - Normalized `ProviderResponse` mapping and `ProviderError` HTTP details

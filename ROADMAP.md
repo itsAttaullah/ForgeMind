@@ -74,7 +74,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 3 — Model provider adapters
 
-**Status:** Active  
+**Status:** Done  
 **Branch:** `feat/model-providers`
 
 **Goals**
@@ -93,7 +93,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 4 — Tool system + read-only repo tools
 
-**Status:** Planned  
+**Status:** Active  
 **Branch:** `feat/tools-readonly`
 
 **Goals**
@@ -104,16 +104,16 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] Registry + executor tests
-- [ ] Read-only tools on fixture repos
-- [ ] Path escape attempts denied
+- [x] Registry + executor tests
+- [x] Read-only tools on fixture repos
+- [x] Path escape attempts denied
 
 ---
 
 ## Phase 5 — Memory system
 
 **Status:** Planned  
-**Branch:** `phase-5/memory`
+**Branch:** `feat/memory`
 
 **Goals**
 
