@@ -17,7 +17,8 @@ This repository is under phased development. The agent itself is **not** impleme
 | Core contracts | Phase 1 done |
 | Config / policy | Phase 2 done |
 | Model providers | Phase 3 done |
-| Tools (read-only) | Phase 4 (active branch) |
+| Tools (read-only) | Phase 4 done |
+| Memory system | Phase 5 (active branch) |
 | Agent runtime | Not started (Phase 6+) |
 | Public API | Not frozen |
 | Stable release | Not yet |
@@ -90,6 +91,7 @@ mypy src
 - [Runtime profiles](docs/config/profiles.md) — Phase 2 config and policy
 - [Model providers](docs/providers/README.md) — Phase 3 LLM adapters
 - [Tools](docs/tools/README.md) — Phase 4 registry and repo tools
+- [Memory](docs/memory/README.md) — Phase 5 working + long-term memory
 - [ADRs](docs/adr/README.md) — architecture decisions
 - [Roadmap](ROADMAP.md) — phase-by-phase plan
 - [Contributing](CONTRIBUTING.md) — contribution workflow

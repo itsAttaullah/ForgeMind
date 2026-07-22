@@ -10,6 +10,11 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 5 memory system: working + long-term stores, retention budgets, snapshots
+- In-memory and JSON file backends (`create_memory_store`)
+- CoT/metadata sanitization for summary-only persistence
+- Memory documentation (`docs/memory/README.md`)
+
 - Phase 4 tool runtime: registry, argument validation, policy-aware executor
 - Read-only repo tools: `repo.list_structure`, `repo.search`, `repo.read_file`
 - Sample fixture repository under `tests/fixtures/sample_repo/`
