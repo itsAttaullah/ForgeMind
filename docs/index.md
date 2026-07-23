@@ -9,6 +9,7 @@
 | [**Model providers (Phase 3)**](providers/README.md) | Provider adapters and setup |
 | [**Tools (Phase 4)**](tools/README.md) | Registry, executor, read-only repo tools |
 | [**Memory (Phase 5)**](memory/README.md) | Working + long-term memory |
+| [**Orchestrator (Phase 6)**](agent/README.md) | State machine + read-only agent loop |
 | [ADRs](adr/README.md) | Architecture Decision Records |
 | [Getting started](getting-started.md) | Install and verify the bootstrap |
 | [Engineering overview](engineering/overview.md) | How this repository is developed |

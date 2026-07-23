@@ -10,8 +10,7 @@ Canonical docs:
 
 ## Current state
 
-- **Active:** Phase 5 (memory system)
-- **Agent runtime:** not implemented (starts Phase 6, read-only)
+- **Active:** Phase 6 (orchestrator + read-only state machine)
 - **Mutating edits / test loop:** Phase 8+
 - **Version:** `0.1.0.dev0`
 
@@ -19,8 +18,9 @@ Canonical docs:
 
 | Do not… | Until |
 |---------|-------|
-| Implement orchestrator / agent loop | Phase 6 |
+| Implement full planner/reflector roles | Phase 7 |
 | Implement write/edit tools or test-repair loop | Phase 8 |
+| Wire dedicated reviewer component | Phase 9 |
 | Wire product CLI entrypoint | Phase 11 |
 | Add git mutation / approval UX | Phase 12 |
 | Add GitHub mutation tools | Phase 13 |
@@ -29,7 +29,7 @@ Canonical docs:
 | Give the model raw FS/shell access | Ever (ADR 0001/0002) |
 | Persist private chain-of-thought | Ever |
 
-Phase 5 may implement memory stores only (no orchestrator).
+Phase 6 may implement read-only orchestration only (no writes).
 
 ## Before writing code
 

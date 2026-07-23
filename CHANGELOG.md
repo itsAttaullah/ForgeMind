@@ -10,6 +10,11 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 6 orchestrator: explicit run state machine and read-only agent loop
+- Scripted and provider-backed action selectors
+- Engineering report assembly for completed/failed runs
+- Orchestrator docs (`docs/agent/README.md`)
+
 - Phase 5 memory system: working + long-term stores, retention budgets, snapshots
 - In-memory and JSON file backends (`create_memory_store`)
 - CoT/metadata sanitization for summary-only persistence
