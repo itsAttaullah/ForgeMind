@@ -112,7 +112,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 5 — Memory system
 
-**Status:** Active  
+**Status:** Done  
 **Branch:** `feat/memory`
 
 **Goals**
@@ -131,7 +131,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 6 — Orchestrator + state machine (read-only autonomy)
 
-**Status:** Planned  
+**Status:** Active  
 **Branch:** `feat/orchestrator`
 
 **Goals**
@@ -142,16 +142,16 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] Orchestrator drives Analyzing → … → Reporting for explain tasks
-- [ ] Stub-LLM end-to-end test
-- [ ] Serializable `RunState` resume smoke test
+- [x] Orchestrator drives Analyzing → … → Reporting for explain tasks
+- [x] Stub-LLM end-to-end test
+- [x] Serializable `RunState` resume smoke test
 
 ---
 
 ## Phase 7 — Planner + reflection
 
 **Status:** Planned  
-**Branch:** `phase-7/plan-reflect`
+**Branch:** `feat/plan-reflect`
 
 **Goals**
 
