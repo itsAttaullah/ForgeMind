@@ -19,7 +19,8 @@ This repository is under phased development. The agent itself is **not** impleme
 | Model providers | Phase 3 done |
 | Tools (read-only) | Phase 4 done |
 | Memory system | Phase 5 done |
-| Orchestrator (read-only) | Phase 6 (active branch) |
+| Orchestrator (read-only) | Phase 6 done |
+| Planner + reflection | Phase 7 (active branch) |
 | Agent mutations / test loop | Not started (Phase 8+) |
 | Public API | Not frozen |
 | Stable release | Not yet |
@@ -94,6 +95,7 @@ mypy src
 - [Tools](docs/tools/README.md) — Phase 4 registry and repo tools
 - [Memory](docs/memory/README.md) — Phase 5 working + long-term memory
 - [Orchestrator](docs/agent/README.md) — Phase 6 read-only agent loop
+- [Planner + reflection](docs/planning/README.md) — Phase 7 planning/reflection
 - [ADRs](docs/adr/README.md) — architecture decisions
 - [Roadmap](ROADMAP.md) — phase-by-phase plan
 - [Contributing](CONTRIBUTING.md) — contribution workflow

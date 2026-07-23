@@ -131,7 +131,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 6 — Orchestrator + state machine (read-only autonomy)
 
-**Status:** Active  
+**Status:** Done  
 **Branch:** `feat/orchestrator`
 
 **Goals**
@@ -150,7 +150,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 7 — Planner + reflection
 
-**Status:** Planned  
+**Status:** Active  
 **Branch:** `feat/plan-reflect`
 
 **Goals**
@@ -161,16 +161,16 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] Planner + reflector ports and default implementations
-- [ ] Plan revision on reflection signals
-- [ ] Docs + tests for summary-only memory writes
+- [x] Planner + reflector ports and default implementations
+- [x] Plan revision on reflection signals
+- [x] Docs + tests for summary-only memory writes
 
 ---
 
 ## Phase 8 — Write tools + autonomous test loop
 
 **Status:** Planned  
-**Branch:** `phase-8/edit-test-loop`
+**Branch:** `feat/edit-test-loop`
 
 **Goals**
 

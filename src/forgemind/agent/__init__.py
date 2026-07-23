@@ -12,9 +12,13 @@ from forgemind.agent.orchestrator import (
 )
 from forgemind.agent.reporting import build_engineering_report
 from forgemind.agent.transitions import ALLOWED_TRANSITIONS, can_transition, transition
+from forgemind.planning import HeuristicPlanner
+from forgemind.reflection import HeuristicReflector
 
 __all__ = [
     "ALLOWED_TRANSITIONS",
+    "HeuristicPlanner",
+    "HeuristicReflector",
     "Orchestrator",
     "ProviderActionSelector",
     "RunResult",
