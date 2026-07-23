@@ -10,7 +10,7 @@ Canonical docs:
 
 ## Current state
 
-- **Active:** Phase 6 (orchestrator + read-only state machine)
+- **Active:** Phase 7 (planner + reflection)
 - **Mutating edits / test loop:** Phase 8+
 - **Version:** `0.1.0.dev0`
 
@@ -18,7 +18,6 @@ Canonical docs:
 
 | Do not… | Until |
 |---------|-------|
-| Implement full planner/reflector roles | Phase 7 |
 | Implement write/edit tools or test-repair loop | Phase 8 |
 | Wire dedicated reviewer component | Phase 9 |
 | Wire product CLI entrypoint | Phase 11 |
@@ -29,7 +28,7 @@ Canonical docs:
 | Give the model raw FS/shell access | Ever (ADR 0001/0002) |
 | Persist private chain-of-thought | Ever |
 
-Phase 6 may implement read-only orchestration only (no writes).
+Phase 7 may implement planner/reflector only (no write tools).
 
 ## Before writing code
 

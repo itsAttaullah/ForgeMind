@@ -76,7 +76,7 @@ the loop (approval waits return `AWAITING_APPROVAL` without completing).
 
 ## Out of scope
 
-- Full planner/reflector roles (Phase 7)
+- Full planner/reflector roles (Phase 7) — now landed; see `docs/planning/`
 - Mutating edits + test loop (Phase 8)
 - Dedicated reviewer component (Phase 9)
 - Trace export / replay (Phase 10)

@@ -10,6 +10,11 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 7 planner/reflector: heuristic + provider implementations
+- Orchestrator integration for plan creation and reflection-driven plan revision
+- Summary-only reflection sanitization before memory writes
+- Planning docs (`docs/planning/README.md`)
+
 - Phase 6 orchestrator: explicit run state machine and read-only agent loop
 - Scripted and provider-backed action selectors
 - Engineering report assembly for completed/failed runs
