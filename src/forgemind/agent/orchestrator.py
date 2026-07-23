@@ -28,13 +28,15 @@ from forgemind.core.errors import (
     InvalidActionError,
 )
 from forgemind.core.memory import WorkingMemory
-from forgemind.core.plan import ExecutionPlan, PlanStep
+from forgemind.core.plan import ExecutionPlan
 from forgemind.core.reflection import ReflectionSummary
 from forgemind.core.report import EngineeringReport
 from forgemind.core.state import BudgetCounters, RunState
 from forgemind.core.task import TaskSpec
 from forgemind.core.tools import Observation, ToolCall, ToolManifest
 from forgemind.memory.store import CompositeMemoryStore, create_memory_store
+from forgemind.planning import HeuristicPlanner
+from forgemind.reflection import HeuristicReflector, should_revise_plan
 from forgemind.tools.executor import ToolExecutor, observation_from_result
 from forgemind.tools.repo import create_readonly_tooling
 
@@ -49,6 +51,28 @@ class ActionSelector(Protocol):
     ) -> AgentAction: ...
 
 
+class PlannerPort(Protocol):
+    async def create_plan(self, state: RunState, memory: Any) -> ExecutionPlan: ...
+
+    async def revise_plan(
+        self,
+        state: RunState,
+        memory: Any,
+        *,
+        reason: str,
+    ) -> ExecutionPlan: ...
+
+
+class ReflectorPort(Protocol):
+    async def reflect(
+        self,
+        state: RunState,
+        memory: Any,
+        *,
+        observation: Observation,
+    ) -> ReflectionSummary: ...
+
+
 @dataclass
 class RunResult:
     """Outcome of an orchestrator run."""
@@ -61,8 +85,9 @@ class RunResult:
 class Orchestrator:
     """Drive one agent run through the explicit state machine.
 
-    Phase 6 focuses on **read-only** autonomy (explain/analyze). Write/test
+    Phase 6+ focuses on **read-only** autonomy (explain/analyze). Write/test
     actions are rejected or aborted rather than mutating the host.
+    Phase 7 adds planner/reflector integration with plan revision signals.
     """
 
     def __init__(
@@ -71,11 +96,15 @@ class Orchestrator:
         tools: ToolExecutor,
         memory: CompositeMemoryStore,
         actor: ActionSelector,
+        planner: PlannerPort | None = None,
+        reflector: ReflectorPort | None = None,
         readonly: bool = True,
     ) -> None:
         self._tools = tools
         self._memory = memory
         self._actor = actor
+        self._planner: PlannerPort = planner or HeuristicPlanner()
+        self._reflector: ReflectorPort = reflector or HeuristicReflector()
         self._readonly = readonly
 
     async def run(self, task: TaskSpec, *, state: RunState | None = None) -> RunResult:
@@ -92,7 +121,7 @@ class Orchestrator:
             state = transition(state, RunStatus.ANALYZING)
             events.append(_event(state, "started", {"goal": task.goal}))
             state = transition(state, RunStatus.PLANNING)
-            await self._ensure_default_plan(state)
+            await self._create_initial_plan(state)
             state = transition(state, RunStatus.INVESTIGATING)
             events.append(_event(state, "investigating", {}))
         elif state.is_terminal:
@@ -283,17 +312,42 @@ class Orchestrator:
             and result.status == ToolResultStatus.SUCCESS
         ):
             working.files_inspected.append(path)
-        working.reflections.append(
-            ReflectionSummary(
-                verdict=ReflectionVerdict.CONTINUE,
-                helped=result.status == ToolResultStatus.SUCCESS,
-                learned=observation.summary,
-            )
-        )
         await self._memory.save_working(state.run_id, working)
 
         if state.status == RunStatus.INVESTIGATING:
             state = transition(state, RunStatus.REFLECTING)
+
+        snapshot = await self._memory.snapshot(state.run_id, query=state.task.goal)
+        reflection = await self._reflector.reflect(
+            state,
+            snapshot,
+            observation=observation,
+        )
+        working = await self._memory.load_working(state.run_id)
+        working.reflections.append(reflection)
+        await self._memory.save_working(state.run_id, working)
+        events.append(
+            _event(
+                state,
+                "reflection",
+                {
+                    "verdict": reflection.verdict.value,
+                    "helped": reflection.helped,
+                },
+            )
+        )
+
+        if should_revise_plan(reflection):
+            reason = reflection.plan_adjustment or reflection.learned
+            snapshot = await self._memory.snapshot(state.run_id, query=state.task.goal)
+            revised = await self._planner.revise_plan(state, snapshot, reason=reason)
+            state.plan = revised
+            working = await self._memory.load_working(state.run_id)
+            working.plan = revised
+            await self._memory.save_working(state.run_id, working)
+            events.append(_event(state, "plan_revised", {"reason": reason}))
+
+        if state.status == RunStatus.REFLECTING:
             state = transition(state, RunStatus.INVESTIGATING)
         events.append(
             _event(
@@ -311,33 +365,16 @@ class Orchestrator:
         memory = WorkingMemory(task_brief=state.task.goal)
         await self._memory.save_working(state.run_id, memory)
 
-    async def _ensure_default_plan(self, state: RunState) -> None:
+    async def _create_initial_plan(self, state: RunState) -> None:
         if state.plan is not None:
             return
-        plan = ExecutionPlan(
-            summary=f"Read-only investigation for: {state.task.goal}",
-            steps=[
-                PlanStep(
-                    id="survey",
-                    title="Survey repository structure",
-                    success_criteria=["Top-level layout understood"],
-                ),
-                PlanStep(
-                    id="inspect",
-                    title="Inspect relevant files",
-                    success_criteria=["Key files read or searched"],
-                ),
-                PlanStep(
-                    id="summarize",
-                    title="Summarize findings",
-                    success_criteria=["Engineering report produced"],
-                ),
-            ],
-        )
+        snapshot = await self._memory.snapshot(state.run_id, query=state.task.goal)
+        plan = await self._planner.create_plan(state, snapshot)
         state.plan = plan
         working = await self._memory.load_working(state.run_id)
         working.plan = plan
         await self._memory.save_working(state.run_id, working)
+        state.current_step_id = plan.steps[0].id if plan.steps else None
 
 
 def create_readonly_orchestrator(
@@ -346,14 +383,21 @@ def create_readonly_orchestrator(
     config: ForgeMindConfig,
     actor: ActionSelector,
     memory: CompositeMemoryStore | None = None,
+    planner: PlannerPort | None = None,
+    reflector: ReflectorPort | None = None,
 ) -> Orchestrator:
-    """Wire a read-only orchestrator with repo tools and memory."""
+    """Wire a read-only orchestrator with repo tools, memory, planner, and reflector."""
 
     tools = create_readonly_tooling(workspace_root=workspace_root, config=config)
     store = memory or create_memory_store()
-    # Align run budgets from config when creating fresh runs — caller may also
-    # set counters on RunState. Store config max on tools registry metadata via actor.
-    return Orchestrator(tools=tools, memory=store, actor=actor, readonly=True)
+    return Orchestrator(
+        tools=tools,
+        memory=store,
+        actor=actor,
+        planner=planner,
+        reflector=reflector,
+        readonly=True,
+    )
 
 
 def seed_budgets_from_config(config: ForgeMindConfig) -> BudgetCounters:

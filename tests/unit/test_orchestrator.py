@@ -178,7 +178,7 @@ def test_budget_exhaustion_fails() -> None:
             status=RunStatus.INVESTIGATING,
         )
         await orch._init_working_memory(warm)
-        await orch._ensure_default_plan(warm)
+        await orch._create_initial_plan(warm)
         result = await orch.run(task, state=warm)
         assert result.state.status == RunStatus.FAILED
         assert result.state.last_error is not None
