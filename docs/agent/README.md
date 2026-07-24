@@ -77,7 +77,7 @@ result = asyncio.run(orch.run(fix_task(workspace, "Make calc tests pass")))
 print(result.state.status)
 ```
 
-## Loop behaviour (Phase 8)
+## Loop behaviour (Phase 8+)
 
 1. Write/edit tools move the run into `acting`, then `reflecting`.
 2. `run_tests` / `test.run` move into `testing`; failures consume **repair iterations**.
@@ -85,6 +85,8 @@ print(result.state.status)
 4. Hard **denylist** writes (e.g. `.env`) fail the run immediately.
 5. Exceeding `max_repair_iterations` fails the run with a budget error.
 6. Profile budgets are seeded via `create_*_orchestrator` (`seed_budgets_from_config`).
+7. On mutable standard/strict profiles, successful `finish` requires a reviewer pass
+   (see `docs/review/README.md`).
 
 ## Components
 
@@ -103,7 +105,6 @@ the loop (approval waits return `AWAITING_APPROVAL` without completing).
 
 ## Out of scope
 
-- Dedicated reviewer component (Phase 9)
 - Trace export / replay (Phase 10)
 - Product CLI (Phase 11)
 - Git mutation / approval UX (Phase 12)

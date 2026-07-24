@@ -10,6 +10,11 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 9 separate reviewer: `HeuristicReviewer` + `ProviderReviewer`
+- `require_review_before_completion` on standard/strict profiles
+- Engineering report includes changes, tests, and embedded `ReviewReport`
+- Review docs (`docs/review/README.md`) and golden helper `report_dict_for_golden`
+
 - Phase 8 write/edit tools: `repo.write_file`, `repo.edit_file`
 - `test.run` pytest runner tool and `create_standard_tooling`
 - Mutable orchestrator (`create_mutable_orchestrator`) with repair-budget loop
@@ -56,6 +61,7 @@ releases begin (see Roadmap Phase 14).
 
 - Package version bumped to `0.1.0.dev0`
 - Orchestrator factories seed budget counters from profile config
+- Mutable finish path can auto-run review before successful completion
 
 ## [0.0.0] — 2026-07-20
 

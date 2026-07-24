@@ -16,6 +16,9 @@ def env_overrides(environ: Mapping[str, str] | None = None) -> dict[str, object]
         {
             "profile": env.get("FORGEMIND_PROFILE"),
             "log_level": env.get("FORGEMIND_LOG_LEVEL"),
+            "require_review_before_completion": _bool(
+                env, "FORGEMIND_REQUIRE_REVIEW_BEFORE_COMPLETION"
+            ),
             "budgets": drop_none(
                 {
                     "max_steps": _int(env, "FORGEMIND_MAX_STEPS"),
@@ -65,3 +68,15 @@ def _csv(env: Mapping[str, str], key: str) -> list[str] | None:
     if raw is None or raw.strip() == "":
         return None
     return [part.strip() for part in raw.split(",") if part.strip()]
+
+
+def _bool(env: Mapping[str, str], key: str) -> bool | None:
+    raw = env.get(key)
+    if raw is None or raw.strip() == "":
+        return None
+    normalized = raw.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{key} must be a boolean, got {raw!r}")
