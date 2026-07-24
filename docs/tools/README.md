@@ -1,20 +1,24 @@
-# Tools (Phase 4)
+# Tools
 
-ForgeMind side effects go through **registered tools**. Phase 4 ships the tool
-runtime (registry + executor + argument validation) and three **read-only**
-repository tools.
+ForgeMind side effects go through **registered tools**. The runtime owns the
+registry, argument validation, and policy-aware executor. The model never gets
+raw filesystem or shell access.
 
 ---
 
 ## Built-in tools
 
-| Name | Purpose | Permission |
-|------|---------|------------|
-| `repo.list_structure` | List files/dirs under a workspace path | `repo.read` |
-| `repo.search` | Substring search across text files | `repo.read` |
-| `repo.read_file` | Read a text file (with line windowing) | `repo.read` |
+| Name | Purpose | Permission | Risk |
+|------|---------|------------|------|
+| `repo.list_structure` | List files/dirs under a workspace path | `repo.read` | READ |
+| `repo.search` | Substring search across text files | `repo.read` | READ |
+| `repo.read_file` | Read a text file (with line windowing) | `repo.read` | READ |
+| `repo.write_file` | Create or overwrite a text file | `repo.write` | WRITE |
+| `repo.edit_file` | Exact string replacement in a text file | `repo.write` | WRITE |
+| `test.run` | Run pytest in the workspace (optional selector) | `test.run` | EXEC |
 
-All three are `RiskClass.READ` and run inside the workspace jail + policy denylist.
+Read tools ship with `create_readonly_tooling`. Write + test tools are included
+in `create_standard_tooling` (Phase 8).
 
 ---
 
@@ -25,16 +29,29 @@ import asyncio
 from pathlib import Path
 
 from forgemind.config import profile_config
-from forgemind.tools import create_readonly_tooling
+from forgemind.tools import create_readonly_tooling, create_standard_tooling
 
 workspace = Path(".")
-executor = create_readonly_tooling(
+
+# Survey only
+readonly = create_readonly_tooling(
     workspace_root=workspace,
     config=profile_config("readonly"),
 )
+print(asyncio.run(readonly.invoke("repo.search", {"query": "TODO"})).status)
 
-result = asyncio.run(executor.invoke("repo.search", {"query": "TODO"}))
-print(result.status, result.output)
+# Edit + test
+mutable = create_standard_tooling(
+    workspace_root=workspace,
+    config=profile_config("standard"),
+)
+asyncio.run(
+    mutable.invoke(
+        "repo.edit_file",
+        {"path": "src/app.py", "old_string": "old", "new_string": "new"},
+    )
+)
+print(asyncio.run(mutable.invoke("test.run", {"selector": "tests/"})).output["passed"])
 ```
 
 ---
@@ -58,7 +75,7 @@ ToolResult ──► Observation (optional)
 ```
 
 - **Registry** owns tool instances by name.
-- **Executor** authorizes first; denied calls return `ToolResultStatus.DENIED` (they do not raise).
+- **Executor** authorizes first; denied calls return `ToolResultStatus.DENIED`.
 - **Tools** never get a raw host handle from the LLM — only validated arguments.
 
 ---
@@ -78,11 +95,12 @@ Invalid arguments become `ToolResultStatus.ERROR`.
 ## Safety
 
 1. Paths resolve under `workspace_root` (`PermissionDeniedError` / DENIED on escape).
-2. Policy denylist blocks `.env`, secrets globs, etc. (see profiles).
+2. Policy denylist blocks `.env`, secrets globs, etc. (writes included).
 3. Search skips heavy dirs (`.git`, `node_modules`, `.venv`, …).
-4. Read/search cap file size / result counts.
+4. Read/search/write cap file size; `test.run` has a process timeout.
+5. Mutable orchestrator terminates the run on write denylist hits.
 
-Write / edit / test / git tools arrive in later phases.
+Git mutation tools arrive in later phases.
 
 ---
 

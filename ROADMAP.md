@@ -169,7 +169,7 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 8 — Write tools + autonomous test loop
 
-**Status:** Planned  
+**Status:** Done  
 **Branch:** `feat/edit-test-loop`
 
 **Goals**
@@ -180,9 +180,9 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] Fixture repo: agent fixes a seeded failing test
-- [ ] Write path denylist enforced
-- [ ] Loop terminates on success, deny, or budget
+- [x] Fixture repo: agent fixes a seeded failing test
+- [x] Write path denylist enforced
+- [x] Loop terminates on success, deny, or budget
 
 ---
 

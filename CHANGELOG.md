@@ -10,6 +10,12 @@ releases begin (see Roadmap Phase 14).
 
 ### Added
 
+- Phase 8 write/edit tools: `repo.write_file`, `repo.edit_file`
+- `test.run` pytest runner tool and `create_standard_tooling`
+- Mutable orchestrator (`create_mutable_orchestrator`) with repair-budget loop
+- Repair fixture (`tests/fixtures/repair_repo/`) and fix-loop E2E tests
+- `fix_task` helper and ACTING↔TESTING transitions for the repair path
+
 - Phase 7 planner/reflector: heuristic + provider implementations
 - Orchestrator integration for plan creation and reflection-driven plan revision
 - Summary-only reflection sanitization before memory writes
@@ -49,6 +55,7 @@ releases begin (see Roadmap Phase 14).
 ### Changed
 
 - Package version bumped to `0.1.0.dev0`
+- Orchestrator factories seed budget counters from profile config
 
 ## [0.0.0] — 2026-07-20
 
