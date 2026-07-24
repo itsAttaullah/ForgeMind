@@ -10,15 +10,14 @@ Canonical docs:
 
 ## Current state
 
-- **Active:** Phase 8 complete on `feat/edit-test-loop` (merge next)
-- **Next:** Phase 9 (reviewer + engineering report polish)
+- **Active:** Phase 9 complete on `feat/review-report` (merge next)
+- **Next:** Phase 10 (observability and replay)
 - **Version:** `0.1.0.dev0`
 
 ## Hard stops
 
 | Do not… | Until |
 |---------|-------|
-| Wire dedicated reviewer component | Phase 9 |
 | Wire product CLI entrypoint | Phase 11 |
 | Add git mutation / approval UX | Phase 12 |
 | Add GitHub mutation tools | Phase 13 |
@@ -27,7 +26,7 @@ Canonical docs:
 | Give the model raw FS/shell access | Ever (ADR 0001/0002) |
 | Persist private chain-of-thought | Ever |
 
-Phase 8 may implement write/edit + `test.run` repair loop only (no reviewer/CLI/git).
+Phase 9 may implement reviewer + engineering report polish only (no CLI/git/trace sinks).
 
 ## Before writing code
 

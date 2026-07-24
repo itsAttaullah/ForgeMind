@@ -53,4 +53,4 @@ orch = create_readonly_orchestrator(
 ## Out of scope
 
 - Write / edit / test repair loop (Phase 8) — landed; see `docs/tools/` and `docs/agent/`
-- Dedicated reviewer role (Phase 9)
+- Dedicated reviewer role (Phase 9) — landed; see `docs/review/`

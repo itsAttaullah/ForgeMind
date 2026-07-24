@@ -188,8 +188,8 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 ## Phase 9 — Reviewer + engineering report
 
-**Status:** Planned  
-**Branch:** `phase-9/review-report`
+**Status:** Done  
+**Branch:** `feat/review-report`
 
 **Goals**
 
@@ -199,9 +199,9 @@ Architecture source of truth: [`docs/architecture/PROPOSAL.md`](docs/architectur
 
 **Exit criteria**
 
-- [ ] `ReviewReport` schema + stub/real reviewer
-- [ ] Report builder output stable enough for golden tests
-- [ ] Findings can force return to Acting/Testing
+- [x] `ReviewReport` schema + stub/real reviewer
+- [x] Report builder output stable enough for golden tests
+- [x] Findings can force return to Acting/Testing
 
 ---
 

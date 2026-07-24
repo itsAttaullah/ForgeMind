@@ -34,6 +34,7 @@ cfg = load_config(
 |----------|---------|
 | `FORGEMIND_PROFILE` | `profile` |
 | `FORGEMIND_LOG_LEVEL` | `log_level` |
+| `FORGEMIND_REQUIRE_REVIEW_BEFORE_COMPLETION` | `require_review_before_completion` |
 | `FORGEMIND_MAX_STEPS` | `budgets.max_steps` |
 | `FORGEMIND_MAX_TOOL_CALLS` | `budgets.max_tool_calls` |
 | `FORGEMIND_MAX_REPAIR_ITERATIONS` | `budgets.max_repair_iterations` |

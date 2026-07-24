@@ -22,7 +22,8 @@ This repository is under phased development. The agent itself is **not** impleme
 | Orchestrator (read-only) | Phase 6 done |
 | Planner + reflection | Phase 7 done |
 | Write tools + test loop | Phase 8 done |
-| Reviewer / report polish | Not started (Phase 9+) |
+| Reviewer / engineering report | Phase 9 done |
+| Observability / replay | Not started (Phase 10+) |
 | Public API | Not frozen |
 | Stable release | Not yet |
 
@@ -97,6 +98,7 @@ mypy src
 - [Memory](docs/memory/README.md) — Phase 5 working + long-term memory
 - [Orchestrator](docs/agent/README.md) — Agent loop (read-only + mutable repair)
 - [Planner + reflection](docs/planning/README.md) — Phase 7 planning/reflection
+- [Reviewer + report](docs/review/README.md) — Phase 9 separate review pass
 - [ADRs](docs/adr/README.md) — architecture decisions
 - [Roadmap](ROADMAP.md) — phase-by-phase plan
 - [Contributing](CONTRIBUTING.md) — contribution workflow
