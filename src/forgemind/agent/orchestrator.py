@@ -25,7 +25,7 @@ from forgemind.core.actions import (
     RevisePlanAction,
     RunTestsAction,
 )
-from forgemind.core.enums import ReflectionVerdict, RunStatus, TaskMode, ToolResultStatus
+from forgemind.core.enums import RunStatus, TaskMode, ToolResultStatus
 from forgemind.core.errors import (
     BudgetExceededError,
     IllegalTransitionError,
@@ -35,12 +35,19 @@ from forgemind.core.memory import WorkingMemory
 from forgemind.core.plan import ExecutionPlan
 from forgemind.core.reflection import ReflectionSummary
 from forgemind.core.report import EngineeringReport
+from forgemind.core.review import ReviewReport
 from forgemind.core.state import BudgetCounters, RunState
 from forgemind.core.task import TaskSpec
 from forgemind.core.tools import Observation, ToolCall, ToolManifest
 from forgemind.memory.store import CompositeMemoryStore, create_memory_store
 from forgemind.planning import HeuristicPlanner
 from forgemind.reflection import HeuristicReflector, should_revise_plan
+from forgemind.review import (
+    HeuristicReviewer,
+    default_diff_summary,
+    resume_status_after_review,
+    should_block_completion,
+)
 from forgemind.tools.executor import ToolExecutor, observation_from_result
 from forgemind.tools.repo import create_readonly_tooling, create_standard_tooling
 
@@ -87,6 +94,17 @@ class ReflectorPort(Protocol):
     ) -> ReflectionSummary: ...
 
 
+class ReviewerPort(Protocol):
+    async def review(
+        self,
+        state: RunState,
+        memory: Any,
+        *,
+        diff_summary: str,
+        focus: list[str] | None = None,
+    ) -> ReviewReport: ...
+
+
 @dataclass
 class RunResult:
     """Outcome of an orchestrator run."""
@@ -100,7 +118,7 @@ class Orchestrator:
     """Drive one agent run through the explicit state machine.
 
     Read-only mode (default) allows survey/read tools only.
-    Mutable mode (Phase 8) enables write/edit tools and the test-repair loop.
+    Mutable mode enables write/edit tools, the test-repair loop, and review.
     """
 
     def __init__(
@@ -111,7 +129,9 @@ class Orchestrator:
         actor: ActionSelector,
         planner: PlannerPort | None = None,
         reflector: ReflectorPort | None = None,
+        reviewer: ReviewerPort | None = None,
         readonly: bool = True,
+        require_review: bool = False,
         default_budgets: BudgetCounters | None = None,
     ) -> None:
         self._tools = tools
@@ -119,7 +139,9 @@ class Orchestrator:
         self._actor = actor
         self._planner: PlannerPort = planner or HeuristicPlanner()
         self._reflector: ReflectorPort = reflector or HeuristicReflector()
+        self._reviewer: ReviewerPort = reviewer or HeuristicReviewer()
         self._readonly = readonly
+        self._require_review = require_review and not readonly
         self._default_budgets = default_budgets
 
     async def run(self, task: TaskSpec, *, state: RunState | None = None) -> RunResult:
@@ -230,14 +252,52 @@ class Orchestrator:
             events.append(_event(state, "plan_revised", {"reason": action.reason}))
             return state, None, False
         if isinstance(action, FinishAction):
+            if action.success and self._require_review:
+                working = await self._memory.load_working(state.run_id)
+                if working.last_review is None:
+                    state, _, _ = await self._run_review(
+                        state,
+                        RequestReviewAction(
+                            focus=[],
+                            rationale="required before completion",
+                        ),
+                        events,
+                    )
+                    working = await self._memory.load_working(state.run_id)
+                review = working.last_review
+                if review is None or should_block_completion(review):
+                    if state.status == RunStatus.REVIEWING:
+                        snapshot = await self._memory.snapshot(
+                            state.run_id,
+                            query=state.task.goal,
+                        )
+                        target = (
+                            RunStatus.ACTING
+                            if review is None
+                            else resume_status_after_review(review, snapshot)
+                        )
+                        state = transition(state, target)
+                    events.append(
+                        _event(
+                            state,
+                            "review_blocked_finish",
+                            {
+                                "resume": state.status.value,
+                                "summary": None if review is None else review.summary,
+                            },
+                        )
+                    )
+                    return state, None, False
+
             if state.status != RunStatus.REPORTING:
                 if state.status in {RunStatus.ANALYZING, RunStatus.PLANNING}:
                     state = transition(state, RunStatus.INVESTIGATING)
                 if state.status in {RunStatus.ACTING, RunStatus.TESTING}:
                     state = transition(state, RunStatus.REFLECTING)
+                if state.status == RunStatus.REVIEWING:
+                    state = transition(state, RunStatus.REPORTING)
                 if state.status in {
                     RunStatus.REFLECTING,
-                    RunStatus.REVIEWING,
                     RunStatus.INVESTIGATING,
                 }:
                     state = transition(state, RunStatus.REPORTING)
@@ -261,26 +321,7 @@ class Orchestrator:
             )
             return state, None, True
         if isinstance(action, RequestReviewAction):
-            if state.status == RunStatus.INVESTIGATING:
-                state = transition(state, RunStatus.REFLECTING)
-            if state.status == RunStatus.REFLECTING or state.status != RunStatus.REVIEWING:
-                state = transition(state, RunStatus.REVIEWING)
-            working = await self._memory.load_working(state.run_id)
-            working.reflections.append(
-                ReflectionSummary(
-                    verdict=ReflectionVerdict.CONTINUE,
-                    helped=True,
-                    learned="Self-review requested; Phase 9 reviewer not wired yet.",
-                    next_hint=(
-                        "Continue to report"
-                        if not action.focus
-                        else f"Focus: {', '.join(action.focus)}"
-                    ),
-                )
-            )
-            await self._memory.save_working(state.run_id, working)
-            state = transition(state, RunStatus.REPORTING)
-            return state, None, False
+            return await self._run_review(state, action, events)
         if isinstance(action, RunTestsAction):
             if self._readonly:
                 working = await self._memory.load_working(state.run_id)
@@ -295,6 +336,57 @@ class Orchestrator:
                 return state, None, False
             return await self._handle_run_tests(state, action, events)
         raise InvalidActionError(f"unsupported action type: {type(action)!r}")
+
+    async def _run_review(
+        self,
+        state: RunState,
+        action: RequestReviewAction,
+        events: list[dict[str, Any]],
+    ) -> tuple[RunState, str | None, bool]:
+        if state.status == RunStatus.INVESTIGATING:
+            state = transition(state, RunStatus.REFLECTING)
+        if state.status in {RunStatus.ACTING, RunStatus.TESTING, RunStatus.REFLECTING}:
+            state = transition(state, RunStatus.REVIEWING)
+        elif state.status == RunStatus.PLANNING:
+            state = transition(state, RunStatus.INVESTIGATING)
+            state = transition(state, RunStatus.REFLECTING)
+            state = transition(state, RunStatus.REVIEWING)
+        elif state.status != RunStatus.REVIEWING:
+            raise InvalidActionError(
+                f"cannot request review from status {state.status.value}"
+            )
+
+        snapshot = await self._memory.snapshot(state.run_id, query=state.task.goal)
+        diff_summary = default_diff_summary(snapshot)
+        report = await self._reviewer.review(
+            state,
+            snapshot,
+            diff_summary=diff_summary,
+            focus=action.focus or None,
+        )
+        working = await self._memory.load_working(state.run_id)
+        working.last_review = report
+        await self._memory.save_working(state.run_id, working)
+        events.append(
+            _event(
+                state,
+                "review",
+                {
+                    "approve_completion": report.approve_completion,
+                    "blocking": report.has_blocking_findings,
+                    "finding_count": len(report.findings),
+                    "summary": report.summary,
+                },
+            )
+        )
+
+        if should_block_completion(report):
+            target = resume_status_after_review(report, snapshot)
+            state = transition(state, target)
+            return state, None, False
+
+        state = transition(state, RunStatus.REPORTING)
+        return state, None, False
 
     async def _handle_invoke_tool(
         self,
@@ -532,6 +624,7 @@ def create_readonly_orchestrator(
     memory: CompositeMemoryStore | None = None,
     planner: PlannerPort | None = None,
     reflector: ReflectorPort | None = None,
+    reviewer: ReviewerPort | None = None,
 ) -> Orchestrator:
     """Wire a read-only orchestrator with repo tools, memory, planner, and reflector."""
 
@@ -543,7 +636,9 @@ def create_readonly_orchestrator(
         actor=actor,
         planner=planner,
         reflector=reflector,
+        reviewer=reviewer,
         readonly=True,
+        require_review=False,
         default_budgets=seed_budgets_from_config(config),
     )
 
@@ -556,8 +651,9 @@ def create_mutable_orchestrator(
     memory: CompositeMemoryStore | None = None,
     planner: PlannerPort | None = None,
     reflector: ReflectorPort | None = None,
+    reviewer: ReviewerPort | None = None,
 ) -> Orchestrator:
-    """Wire a mutable orchestrator with read/write/test tools (Phase 8)."""
+    """Wire a mutable orchestrator with read/write/test tools and reviewer."""
 
     tools = create_standard_tooling(workspace_root=workspace_root, config=config)
     store = memory or create_memory_store()
@@ -567,7 +663,9 @@ def create_mutable_orchestrator(
         actor=actor,
         planner=planner,
         reflector=reflector,
+        reviewer=reviewer,
         readonly=False,
+        require_review=config.require_review_before_completion,
         default_budgets=seed_budgets_from_config(config),
     )
 

@@ -34,6 +34,7 @@ ALLOWED_TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
         {
             RunStatus.TESTING,
             RunStatus.REFLECTING,
+            RunStatus.REVIEWING,
             RunStatus.AWAITING_APPROVAL,
             RunStatus.FAILED,
             RunStatus.ABORTED,
@@ -62,6 +63,7 @@ ALLOWED_TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
     RunStatus.REVIEWING: frozenset(
         {
             RunStatus.ACTING,
+            RunStatus.TESTING,
             RunStatus.INVESTIGATING,
             RunStatus.REPORTING,
             RunStatus.FAILED,
