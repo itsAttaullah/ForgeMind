@@ -77,6 +77,7 @@ def _readonly_config() -> ForgeMindConfig:
         ),
         provider=ProviderSettings(),
         log_level="INFO",
+        require_review_before_completion=False,
     )
 
 
@@ -107,6 +108,7 @@ def _standard_config() -> ForgeMindConfig:
         ),
         provider=ProviderSettings(),
         log_level="INFO",
+        require_review_before_completion=True,
     )
 
 
@@ -139,4 +141,5 @@ def _strict_config() -> ForgeMindConfig:
         ),
         provider=ProviderSettings(),
         log_level="INFO",
+        require_review_before_completion=True,
     )

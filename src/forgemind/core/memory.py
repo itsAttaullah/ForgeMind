@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from forgemind.core.plan import ExecutionPlan
 from forgemind.core.reflection import ReflectionSummary
+from forgemind.core.review import ReviewReport
 from forgemind.core.tools import Observation
 
 
@@ -24,6 +25,7 @@ class WorkingMemory(BaseModel):
     blockers: list[str] = Field(default_factory=list)
     hypotheses: list[str] = Field(default_factory=list)
     test_summaries: list[str] = Field(default_factory=list)
+    last_review: ReviewReport | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 

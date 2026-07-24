@@ -96,11 +96,12 @@ class ForgeMindConfig(BaseModel):
     policy: PolicySettings = Field(default_factory=PolicySettings)
     provider: ProviderSettings = Field(default_factory=ProviderSettings)
     log_level: str = "INFO"
+    require_review_before_completion: bool = False
 
     @field_validator("log_level")
     @classmethod
     def _normalize_log_level(cls, value: str) -> str:
         cleaned = value.strip().upper()
-        if not cleaned:
+        if cleaned == "":
             raise ValueError("log_level must not be blank")
         return cleaned
