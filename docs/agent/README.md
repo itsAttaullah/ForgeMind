@@ -1,19 +1,16 @@
-# Orchestrator (Phase 6)
+# Orchestrator
 
-Phase 6 introduces the first **real agent loop**: an explicit run state machine
-driven by an action selector (actor), with read-only repository tools.
+The orchestrator drives an explicit run state machine. Actors select
+`AgentAction`s; tools, memory, planner, and reflector are runtime-owned.
 
-## What it does
+## Modes
 
-Given a `TaskSpec` (typically `mode=explain`):
+| Factory | Tools | Typical task |
+|---------|-------|--------------|
+| `create_readonly_orchestrator` | list / search / read | `explain_task` |
+| `create_mutable_orchestrator` | + write / edit / `test.run` | `fix_task` |
 
-1. `received → analyzing → planning → investigating`
-2. Actor selects `AgentAction`s (`invoke_tool`, `revise_plan`, `finish`, …)
-3. Tools run through the Phase 4 executor + Phase 2 policy jail
-4. Observations/reflections land in Phase 5 working memory
-5. `finish` → `reporting → completed` and an `EngineeringReport`
-
-## Quick start
+## Quick start (read-only)
 
 ```python
 import asyncio
@@ -42,15 +39,52 @@ result = asyncio.run(orch.run(explain_task(workspace, "Explain this repository")
 print(result.state.status, result.report.key_findings if result.report else None)
 ```
 
-Stub-provider actor (JSON actions):
+## Quick start (fix / repair loop)
 
 ```python
-from forgemind.agent import ProviderActionSelector
-from forgemind.providers import StubProvider
+import asyncio
+from pathlib import Path
 
-provider = StubProvider(responses=['{"type":"finish","summary":"done","success":true}'])
-actor = ProviderActionSelector(provider)
+from forgemind.agent import (
+    ScriptedActionSelector,
+    create_mutable_orchestrator,
+    fix_task,
+)
+from forgemind.config import profile_config
+
+workspace = Path("tests/fixtures/repair_repo")
+actor = ScriptedActionSelector(
+    [
+        {
+            "type": "invoke_tool",
+            "tool_name": "repo.edit_file",
+            "arguments": {
+                "path": "calc.py",
+                "old_string": "return left + right + 1",
+                "new_string": "return left + right",
+            },
+        },
+        {"type": "run_tests", "selector": "test_calc.py"},
+        {"type": "finish", "summary": "Fixed add()", "success": True},
+    ]
+)
+orch = create_mutable_orchestrator(
+    workspace_root=workspace,
+    config=profile_config("standard"),
+    actor=actor,
+)
+result = asyncio.run(orch.run(fix_task(workspace, "Make calc tests pass")))
+print(result.state.status)
 ```
+
+## Loop behaviour (Phase 8)
+
+1. Write/edit tools move the run into `acting`, then `reflecting`.
+2. `run_tests` / `test.run` move into `testing`; failures consume **repair iterations**.
+3. After a failed test (within budget), the run resumes in `acting` for another fix.
+4. Hard **denylist** writes (e.g. `.env`) fail the run immediately.
+5. Exceeding `max_repair_iterations` fails the run with a budget error.
+6. Profile budgets are seeded via `create_*_orchestrator` (`seed_budgets_from_config`).
 
 ## Components
 
@@ -61,13 +95,6 @@ actor = ProviderActionSelector(provider)
 | `orchestrator` | Main loop, budgets, tool dispatch |
 | `reporting` | `EngineeringReport` assembly |
 
-## Read-only rules (Phase 6)
-
-- Only `repo.*` tools are executed
-- `run_tests` is rejected (logged as a system observation)
-- Non-repo tools are blocked
-- Write/edit capabilities wait for Phase 8
-
 ## Resume
 
 `RunState` is serializable. Passing a terminal state back into `run(..., state=)`
@@ -76,8 +103,7 @@ the loop (approval waits return `AWAITING_APPROVAL` without completing).
 
 ## Out of scope
 
-- Full planner/reflector roles (Phase 7) — now landed; see `docs/planning/`
-- Mutating edits + test loop (Phase 8)
 - Dedicated reviewer component (Phase 9)
 - Trace export / replay (Phase 10)
 - Product CLI (Phase 11)
+- Git mutation / approval UX (Phase 12)

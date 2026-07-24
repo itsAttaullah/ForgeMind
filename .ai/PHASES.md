@@ -10,15 +10,14 @@ Canonical docs:
 
 ## Current state
 
-- **Active:** Phase 7 (planner + reflection)
-- **Mutating edits / test loop:** Phase 8+
+- **Active:** Phase 8 complete on `feat/edit-test-loop` (merge next)
+- **Next:** Phase 9 (reviewer + engineering report polish)
 - **Version:** `0.1.0.dev0`
 
 ## Hard stops
 
 | Do not… | Until |
 |---------|-------|
-| Implement write/edit tools or test-repair loop | Phase 8 |
 | Wire dedicated reviewer component | Phase 9 |
 | Wire product CLI entrypoint | Phase 11 |
 | Add git mutation / approval UX | Phase 12 |
@@ -28,7 +27,7 @@ Canonical docs:
 | Give the model raw FS/shell access | Ever (ADR 0001/0002) |
 | Persist private chain-of-thought | Ever |
 
-Phase 7 may implement planner/reflector only (no write tools).
+Phase 8 may implement write/edit + `test.run` repair loop only (no reviewer/CLI/git).
 
 ## Before writing code
 

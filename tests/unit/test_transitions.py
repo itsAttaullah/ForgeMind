@@ -28,6 +28,9 @@ def test_legal_happy_path_edges() -> None:
     assert can_transition(RunStatus.REFLECTING, RunStatus.INVESTIGATING)
     assert can_transition(RunStatus.INVESTIGATING, RunStatus.REPORTING)
     assert can_transition(RunStatus.REPORTING, RunStatus.COMPLETED)
+    assert can_transition(RunStatus.ACTING, RunStatus.TESTING)
+    assert can_transition(RunStatus.TESTING, RunStatus.REFLECTING)
+    assert can_transition(RunStatus.REFLECTING, RunStatus.ACTING)
 
 
 def test_illegal_transition_raises() -> None:
