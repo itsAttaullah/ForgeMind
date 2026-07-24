@@ -78,8 +78,9 @@ include = [
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-testpaths = ["tests"]
+testpaths = ["tests/unit"]
 pythonpath = ["src"]
+norecursedirs = [".git", ".venv", "venv", "fixtures", "__pycache__"]
 addopts = [
   "-ra",
   "--strict-markers",
