@@ -9,7 +9,11 @@ from uuid import uuid4
 
 from forgemind.agent.reporting import build_engineering_report
 from forgemind.agent.transitions import transition
-from forgemind.config.budgets import assert_step_budget, assert_tool_budget
+from forgemind.config.budgets import (
+    assert_repair_budget,
+    assert_step_budget,
+    assert_tool_budget,
+)
 from forgemind.config.models import ForgeMindConfig
 from forgemind.core.actions import (
     AbortAction,
@@ -38,7 +42,17 @@ from forgemind.memory.store import CompositeMemoryStore, create_memory_store
 from forgemind.planning import HeuristicPlanner
 from forgemind.reflection import HeuristicReflector, should_revise_plan
 from forgemind.tools.executor import ToolExecutor, observation_from_result
-from forgemind.tools.repo import create_readonly_tooling
+from forgemind.tools.repo import create_readonly_tooling, create_standard_tooling
+
+_READONLY_TOOLS = frozenset(
+    {
+        "repo.list_structure",
+        "repo.search",
+        "repo.read_file",
+    }
+)
+_WRITE_TOOLS = frozenset({"repo.write_file", "repo.edit_file"})
+_TEST_TOOLS = frozenset({"test.run"})
 
 
 class ActionSelector(Protocol):
@@ -85,9 +99,8 @@ class RunResult:
 class Orchestrator:
     """Drive one agent run through the explicit state machine.
 
-    Phase 6+ focuses on **read-only** autonomy (explain/analyze). Write/test
-    actions are rejected or aborted rather than mutating the host.
-    Phase 7 adds planner/reflector integration with plan revision signals.
+    Read-only mode (default) allows survey/read tools only.
+    Mutable mode (Phase 8) enables write/edit tools and the test-repair loop.
     """
 
     def __init__(
@@ -99,6 +112,7 @@ class Orchestrator:
         planner: PlannerPort | None = None,
         reflector: ReflectorPort | None = None,
         readonly: bool = True,
+        default_budgets: BudgetCounters | None = None,
     ) -> None:
         self._tools = tools
         self._memory = memory
@@ -106,15 +120,21 @@ class Orchestrator:
         self._planner: PlannerPort = planner or HeuristicPlanner()
         self._reflector: ReflectorPort = reflector or HeuristicReflector()
         self._readonly = readonly
+        self._default_budgets = default_budgets
 
     async def run(self, task: TaskSpec, *, state: RunState | None = None) -> RunResult:
         """Execute or resume a run until a terminal status is reached."""
 
         events: list[dict[str, Any]] = []
         if state is None:
+            budgets = (
+                self._default_budgets.model_copy(deep=True)
+                if self._default_budgets is not None
+                else BudgetCounters()
+            )
             state = RunState(
                 task=task,
-                budgets=BudgetCounters(),
+                budgets=budgets,
                 status=RunStatus.RECEIVED,
             )
             await self._init_working_memory(state)
@@ -213,11 +233,13 @@ class Orchestrator:
             if state.status != RunStatus.REPORTING:
                 if state.status in {RunStatus.ANALYZING, RunStatus.PLANNING}:
                     state = transition(state, RunStatus.INVESTIGATING)
-                if (
-                    state.status == RunStatus.REFLECTING
-                    or state.status == RunStatus.REVIEWING
-                    or state.status == RunStatus.INVESTIGATING
-                ):
+                if state.status in {RunStatus.ACTING, RunStatus.TESTING}:
+                    state = transition(state, RunStatus.REFLECTING)
+                if state.status in {
+                    RunStatus.REFLECTING,
+                    RunStatus.REVIEWING,
+                    RunStatus.INVESTIGATING,
+                }:
                     state = transition(state, RunStatus.REPORTING)
             target = RunStatus.COMPLETED if action.success else RunStatus.FAILED
             state = transition(state, target)
@@ -265,14 +287,13 @@ class Orchestrator:
                 working.observations.append(
                     Observation(
                         source="system",
-                        summary="run_tests rejected in read-only Phase 6 orchestrator",
+                        summary="run_tests rejected in read-only orchestrator",
                         details={"selector": action.selector},
                     )
                 )
                 await self._memory.save_working(state.run_id, working)
                 return state, None, False
-            state = transition(state, RunStatus.TESTING)
-            return state, None, False
+            return await self._handle_run_tests(state, action, events)
         raise InvalidActionError(f"unsupported action type: {type(action)!r}")
 
     async def _handle_invoke_tool(
@@ -281,7 +302,7 @@ class Orchestrator:
         action: InvokeToolAction,
         events: list[dict[str, Any]],
     ) -> tuple[RunState, str | None, bool]:
-        if self._readonly and not action.tool_name.startswith("repo."):
+        if self._readonly and action.tool_name not in _READONLY_TOOLS:
             working = await self._memory.load_working(state.run_id)
             working.observations.append(
                 Observation(
@@ -292,7 +313,18 @@ class Orchestrator:
             await self._memory.save_working(state.run_id, working)
             return state, None, False
 
+        if action.tool_name in _TEST_TOOLS:
+            # Prefer RunTestsAction, but allow direct invoke_tool for test.run.
+            return await self._handle_run_tests(
+                state,
+                RunTestsAction(selector=action.arguments.get("selector")),
+                events,
+            )
+
         assert_tool_budget(state.budgets)
+        if action.tool_name in _WRITE_TOOLS and state.status == RunStatus.INVESTIGATING:
+            state = transition(state, RunStatus.ACTING)
+
         call = ToolCall(
             call_id=str(uuid4()),
             tool_name=action.tool_name,
@@ -314,7 +346,112 @@ class Orchestrator:
             working.files_inspected.append(path)
         await self._memory.save_working(state.run_id, working)
 
-        if state.status == RunStatus.INVESTIGATING:
+        # Hard deny on write path (denylist / missing permission) ends the loop.
+        if (
+            action.tool_name in _WRITE_TOOLS
+            and result.status == ToolResultStatus.DENIED
+        ):
+            state.last_error = result.error or observation.summary
+            events.append(
+                _event(
+                    state,
+                    "tool_result",
+                    {"tool": action.tool_name, "status": result.status.value},
+                )
+            )
+            state = _force_status(state, RunStatus.FAILED)
+            return state, None, True
+
+        resume_as = (
+            RunStatus.ACTING
+            if action.tool_name in _WRITE_TOOLS
+            else RunStatus.INVESTIGATING
+        )
+        return await self._after_tool(
+            state,
+            action.tool_name,
+            result.status,
+            observation,
+            events,
+            resume_as=resume_as,
+        )
+
+    async def _handle_run_tests(
+        self,
+        state: RunState,
+        action: RunTestsAction,
+        events: list[dict[str, Any]],
+    ) -> tuple[RunState, str | None, bool]:
+        if state.status in {RunStatus.INVESTIGATING, RunStatus.ACTING, RunStatus.REFLECTING}:
+            state = transition(state, RunStatus.TESTING)
+
+        assert_tool_budget(state.budgets)
+        args: dict[str, Any] = {}
+        if isinstance(action.selector, str) and action.selector:
+            args["selector"] = action.selector
+        call = ToolCall(
+            call_id=str(uuid4()),
+            tool_name="test.run",
+            arguments=args,
+        )
+        result = await self._tools.execute(call)
+        state.budgets.tool_calls_used += 1
+        state.touch()
+
+        observation = observation_from_result(result)
+        working = await self._memory.load_working(state.run_id)
+        working.observations.append(observation)
+        passed = (
+            isinstance(result.output, dict)
+            and bool(result.output.get("passed"))
+            and result.status == ToolResultStatus.SUCCESS
+        )
+        working.test_summaries.append("tests passed" if passed else "tests failed")
+        await self._memory.save_working(state.run_id, working)
+
+        events.append(
+            _event(
+                state,
+                "test_result",
+                {"passed": passed, "status": result.status.value},
+            )
+        )
+
+        if result.status == ToolResultStatus.DENIED:
+            state.last_error = result.error or observation.summary
+            state = _force_status(state, RunStatus.FAILED)
+            return state, None, True
+
+        if not passed:
+            try:
+                assert_repair_budget(state.budgets)
+            except BudgetExceededError as exc:
+                state.last_error = str(exc)
+                state = _force_status(state, RunStatus.FAILED)
+                return state, None, True
+            state.budgets.repair_iterations_used += 1
+
+        resume_as = RunStatus.INVESTIGATING if passed else RunStatus.ACTING
+        return await self._after_tool(
+            state,
+            "test.run",
+            result.status,
+            observation,
+            events,
+            resume_as=resume_as,
+        )
+
+    async def _after_tool(
+        self,
+        state: RunState,
+        tool_name: str,
+        status: ToolResultStatus,
+        observation: Observation,
+        events: list[dict[str, Any]],
+        *,
+        resume_as: RunStatus = RunStatus.INVESTIGATING,
+    ) -> tuple[RunState, str | None, bool]:
+        if can_go_reflecting(state.status):
             state = transition(state, RunStatus.REFLECTING)
 
         snapshot = await self._memory.snapshot(state.run_id, query=state.task.goal)
@@ -348,14 +485,14 @@ class Orchestrator:
             events.append(_event(state, "plan_revised", {"reason": reason}))
 
         if state.status == RunStatus.REFLECTING:
-            state = transition(state, RunStatus.INVESTIGATING)
+            state = transition(state, resume_as)
         events.append(
             _event(
                 state,
                 "tool_result",
                 {
-                    "tool": action.tool_name,
-                    "status": result.status.value,
+                    "tool": tool_name,
+                    "status": status.value,
                 },
             )
         )
@@ -375,6 +512,16 @@ class Orchestrator:
         working.plan = plan
         await self._memory.save_working(state.run_id, working)
         state.current_step_id = plan.steps[0].id if plan.steps else None
+
+
+def can_go_reflecting(status: RunStatus) -> bool:
+    """Return True if ``status`` may transition into reflecting."""
+
+    return status in {
+        RunStatus.INVESTIGATING,
+        RunStatus.ACTING,
+        RunStatus.TESTING,
+    }
 
 
 def create_readonly_orchestrator(
@@ -397,6 +544,31 @@ def create_readonly_orchestrator(
         planner=planner,
         reflector=reflector,
         readonly=True,
+        default_budgets=seed_budgets_from_config(config),
+    )
+
+
+def create_mutable_orchestrator(
+    *,
+    workspace_root: str | Path,
+    config: ForgeMindConfig,
+    actor: ActionSelector,
+    memory: CompositeMemoryStore | None = None,
+    planner: PlannerPort | None = None,
+    reflector: ReflectorPort | None = None,
+) -> Orchestrator:
+    """Wire a mutable orchestrator with read/write/test tools (Phase 8)."""
+
+    tools = create_standard_tooling(workspace_root=workspace_root, config=config)
+    store = memory or create_memory_store()
+    return Orchestrator(
+        tools=tools,
+        memory=store,
+        actor=actor,
+        planner=planner,
+        reflector=reflector,
+        readonly=False,
+        default_budgets=seed_budgets_from_config(config),
     )
 
 
@@ -416,6 +588,24 @@ def explain_task(workspace_root: str | Path, goal: str) -> TaskSpec:
         workspace_root=Path(workspace_root),
         mode=TaskMode.EXPLAIN,
         permissions=[Permission.REPO_READ, Permission.GIT_READ],
+    )
+
+
+def fix_task(workspace_root: str | Path, goal: str) -> TaskSpec:
+    """Convenience TaskSpec for fix-mode runs with write/test permissions."""
+
+    from forgemind.core.enums import Permission
+
+    return TaskSpec(
+        goal=goal,
+        workspace_root=Path(workspace_root),
+        mode=TaskMode.FIX,
+        permissions=[
+            Permission.REPO_READ,
+            Permission.REPO_WRITE,
+            Permission.TEST_RUN,
+            Permission.GIT_READ,
+        ],
     )
 
 
